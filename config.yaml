@@ -1,0 +1,18 @@
+credentials: 
+  login: *****
+  password: ******
+logging: 
+  file: ./process_new_ejudge_runs_contest_%d.log
+  max_bytes: 10485760
+  backups: 100
+last_run_file: ./last_run_%d  
+checkers: 
+  - 
+    name: simple
+    type : straight
+    threshold: 0.5
+  - 
+    name : goldfish10
+    type : goldfish
+    memory: 10
+    threshold: 0.5
