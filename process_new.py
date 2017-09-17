@@ -8,7 +8,7 @@ from ejudge_client import EjudgeClient
 import handlers
 
 def format_floats(floats):
-	return ", ".join(map(lambda x: "%0.2f" % x, floats))
+	return ", ".join(map(lambda x: "%0.2f" % x if x else "None", floats))
 
 def alert(old_run, new_run, alerts):
 	(names, similarities) = zip(*alerts)
@@ -18,13 +18,13 @@ def get_similar_runs_filter(run):
 	return '(status == OK or status == DQ) and login !="%s" and prob == "%s"' % (run.user_login, run.problem)
 
 def compare_runs(old_run, old_run_source, new_run, new_run_source, checkers):
-	logging.debug("Comparing runs %s and %s", old_run, new_run)
+	logging.info("Comparing runs %s and %s", old_run, new_run)
 	all_results = []
 	alerts = []
 	for checker in checkers:
 		handler = handlers.get(checker['type'])
-		similarity = handler(checker, old_run_source, new_run_source)
-		if similarity > checker['threshold']:
+		similarity = handler(checker, old_run_source, new_run_source, new_run.lang)
+		if ((not (similarity is None)) and (similarity > checker['threshold'])) or ((similarity is None) and checker.get('alert_if_none', True)):
 			alerts.append((checker['name'], similarity))
 		all_results.append(similarity)
 	if len(alerts):

@@ -16,3 +16,8 @@ checkers:
     type : goldfish
     memory: 10
     threshold: 0.5
+  - 
+    name : script1
+    type : external
+    args: ['/bin/some_script_accepting_3_args', 'some arg to script']
+    threshold: 0.5  
