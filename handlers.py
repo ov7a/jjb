@@ -21,19 +21,22 @@ def goldfish(config, old_run, new_run):
 
 def external(config, old_run, new_run):
 	args = config['args']
+	old_file = tempfile.NamedTemporaryFile(delete=False)
+	new_file = tempfile.NamedTemporaryFile(delete=False)
+	with old_file as old, new_file as new:
+		old.write(bytes(old_run.source, 'UTF-8'))
+		new.write(bytes(new_run.source, 'UTF-8'))
+	all_args = list(map(str, args)) + [new_run.lang, old.name, new.name]
 	try:
-		old_file = tempfile.NamedTemporaryFile(delete=False)
-		new_file = tempfile.NamedTemporaryFile(delete=False)
-		with old_file as old, new_file as new:
-			old.write(bytes(old_run.source, 'UTF-8'))
-			new.write(bytes(new_run.source, 'UTF-8'))
-		all_args = list(map(str, args)) + [new_run.lang, old.name, new.name]
 		output = subprocess.check_output(all_args).decode('utf-8')
 		result = float(output)
-		os.remove(old_file)
-		os.remove(new_file)
-	except: 
-		return None					
+	except subprocess.CalledProcessError:	
+		if (old_run.lang != new_run.lang):
+			result = 0.0
+		else:	
+			result = None					
+	os.remove(old_file.name)
+	os.remove(new_file.name)
 	return result
 
 all_handlers = dict(inspect.getmembers(sys.modules[__name__], predicate=lambda x: isinstance(x, types.FunctionType)))
