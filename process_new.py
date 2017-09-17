@@ -14,48 +14,48 @@ from subprocess import Popen, PIPE
 def format_floats(floats):
 	return ", ".join(map(lambda x: "%0.2f" % x if x else "None", floats))
 
-def create_attachment(prefix, run, run_source):
+def create_attachment(prefix, run):
 	name = "%s_%d_%s" % (prefix, run.id, run.user_login)
-	attachment = MIMEApplication(run_source, Name=name)
+	attachment = MIMEApplication(run.source, Name=name)
 	attachment['Content-Disposition'] = 'attachment; filename="%s"' % name
 	return attachment
 
-def sendmail(old_run, old_run_source, new_run, new_run_source, alerts, mail, contest_id):
+def sendmail(old_run, new_run, alerts, mail):
 	text = "%s\nis probably a copy of\n%s\nSimilarities:\n" % (str(new_run), str(old_run))
 	text += "\n".join(map(lambda x: "%s\t%0.2f" % x if x[1] is not None else "%s\t%s" % x, alerts))
 	
 	message = MIMEMultipart()
 	message["To"] = mail
-	message["Subject"] = "[%d] Suspicious run: %d, %s, %s, %s" % (contest_id, run.id, run.problem, run.lang, run.user_login)
+	message["Subject"] = "[%d] Suspicious run: %d, %s, %s, %s" % (new_run.contest_id, new_run.id, new_run.problem, new_run.lang, new_run.user_login)
 	
 	message.attach(MIMEText(text))
-	message.attach(create_attachment("original", old_run, old_run_source))
-	message.attach(create_attachment("copy", new_run, new_run_source))
+	message.attach(create_attachment("original", old_run))
+	message.attach(create_attachment("copy", new_run))
 	
 	p = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
 	p.communicate(message.as_bytes())
 
-def alert(old_run, old_run_source, new_run, new_run_source, alerts, alert_mail, contest_id):
+def alert(old_run, new_run, alerts, alert_mail):
 	(names, similarities) = zip(*alerts)
 	logging.info("%s is a copy of %s, according to %s. Similarities: (%s)", str(new_run), str(old_run), ", ".join(names), format_floats(similarities))
 	if alert_mail is not None:
-		sendmail(old_run, old_run_source, new_run, new_run_source, alerts, alert_mail, contest_id)
+		sendmail(old_run, new_run, alerts, alert_mail)
 
 def get_similar_runs_filter(run):
 	return '(status == OK or status == DQ) and login !="%s" and prob == "%s"' % (run.user_login, run.problem)
 
-def compare_runs(old_run, old_run_source, new_run, new_run_source, checkers, alert_mail, contest_id):
+def compare_runs(old_run, new_run, checkers, alert_mail):
 	logging.info("Comparing runs %s and %s", old_run, new_run)
 	all_results = []
 	alerts = []
 	for checker in checkers:
 		handler = handlers.get(checker['type'])
-		similarity = handler(checker, old_run_source, new_run_source, new_run.lang)
+		similarity = handler(checker, old_run, new_run)
 		if ((similarity is not None) and (similarity > checker['threshold'])) or ((similarity is None) and checker.get('alert_if_none', True)):
 			alerts.append((checker['name'], similarity))
 		all_results.append(similarity)
 	if len(alerts):
-		alert(old_run, old_run_source, new_run, new_run_source, alerts, alert_mail, contest_id)
+		alert(old_run, new_run, alerts, alert_mail)
 	logging.info("Similarity between %d and %d is (%s)", old_run.id, new_run.id, format_floats(all_results))
 
 def check_run(client, run, checkers, alert_mail):
@@ -64,10 +64,10 @@ def check_run(client, run, checkers, alert_mail):
 	if not len(previous_runs):
 		logging.info("Skipping check of run %d - no similar runs found.", run.id)
 		return
-	run_source = client.get_run_source(run.id)
+	run.source = client.get_run_source(run.id)
 	for old_run in previous_runs:
-		old_run_source = client.get_run_source(old_run.id)
-		compare_runs(old_run, old_run_source, run, run_source, checkers, alert_mail, client.contest_id)
+		old_run.source = client.get_run_source(old_run.id)
+		compare_runs(old_run, run, checkers, alert_mail)
 
 
 def get_args():

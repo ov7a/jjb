@@ -6,7 +6,8 @@ EJUDGE_PATH="/opt/ejudge/bin/"
 CONTESTS_CMD = "ejudge-contests-cmd"
 SESSION_PARAM = "--session"
 
-Run = namedtuple("Run", "id user_id user_login problem_id problem lang status")
+class Run(namedtuple("Run", "contest_id id user_id user_login problem_id problem lang status")):
+	pass # to allow injecting source
 
 def run_cmd(*args):
 	#out = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8') #python3.5+
@@ -48,7 +49,7 @@ class EjudgeClient():
 
 	def parse_run(self, raw_run):
 		parts = raw_run.split(';')
-		return Run(int(parts[0]), int(parts[10]), parts[11], int(parts[17]), parts[18], parts[22], parts[25])
+		return Run(self.contest_id, int(parts[0]), int(parts[10]), parts[11], int(parts[17]), parts[18], parts[22], parts[25])
 
 	def get_runs(self, first_run, last_run = None, runs_filter = None):
 		if runs_filter is None:
