@@ -93,7 +93,7 @@ if __name__=="__main__":
 		datefmt='%Y-%m-%d %H:%M:%S', 
 		level=getattr(logging, args.log_level.upper()),
 		handlers = [
-			logging.StreamHandler(),
+			logging.StreamHandler(stream=sys.stdout),
 			RotatingFileHandler(log_file, maxBytes=log_max_bytes, backupCount=log_backups)
 		]
 	)
