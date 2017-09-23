@@ -11,7 +11,7 @@ class Run(namedtuple("Run", "contest_id id user_id user_login problem_id problem
 
 def run_cmd(*args):
 	#out = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8') #python3.5+
-	out = subprocess.check_output(list(map(str,args))).decode('utf-8')
+	out = subprocess.check_output(list(map(str,args))).decode('utf-8', 'ignore')
 	return out
 
 
