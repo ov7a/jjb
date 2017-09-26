@@ -1,13 +1,21 @@
 import sys
 import subprocess
+import baseconvert
 from collections import namedtuple
 
-EJUDGE_PATH="/opt/ejudge/bin/"
+EJUDGE_PATH = "/opt/ejudge/bin/"
 CONTESTS_CMD = "ejudge-contests-cmd"
 SESSION_PARAM = "--session"
+CONTEST_PATH = "/home/judges/%06d"
+ARCHIVE_PATH = "/var/archive/runs/%s/%s/%s/%06d"
+
+base32 = baseconvert.BaseConverter(input_base=10, output_base=32, string=True)
 
 class Run(namedtuple("Run", "contest_id id user_id user_login problem_id problem lang status")):
-	pass # to allow injecting source
+	def source_path(self):
+		base32_id = base32(self.id).zfill(4)
+		path = (CONTEST_PATH + ARCHIVE_PATH) % tuple([self.contest_id] + list(base32_id)[:-1] + [self.id])
+		return path
 
 def run_cmd(*args):
 	#out = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8') #python3.5+
