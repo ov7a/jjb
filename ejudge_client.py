@@ -46,7 +46,7 @@ class EjudgeClient():
 
 	@staticmethod
 	def get_filter():
-		return 'status == OK or status == DQ'
+		return 'status == OK or status == DQ or status == RJ'
 
 	@staticmethod
 	def wrap_filter(run_filter, first_run, last_run):
