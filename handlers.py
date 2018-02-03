@@ -58,5 +58,5 @@ def get_source_path(run, force_temp):
 		
 	temp_file = tempfile.NamedTemporaryFile(delete=False)
 	with temp_file as temp:
-		temp.write(bytes(run.source, 'UTF-8'))
+		temp.write(bytes(run.source.encode('ascii', 'replace').decode(), 'UTF-8'))
 	return (True, temp_file.name)
