@@ -42,7 +42,7 @@ def alert(old_run, new_run, alerts, alert_mail):
 		sendmail(old_run, new_run, alerts, alert_mail)
 
 def get_similar_runs_filter(run):
-	return '(status == OK or status == DQ) and login !="%s" and prob == "%s"' % (run.user_login, run.problem)
+	return '(status == OK or status == PR or status == DQ) and login !="%s" and prob == "%s"' % (run.user_login, run.problem)
 
 def compare_runs(old_run, new_run, checkers, alert_mail):
 	logging.info("Comparing runs %s and %s", old_run, new_run)
