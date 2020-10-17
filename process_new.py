@@ -102,7 +102,7 @@ if __name__=="__main__":
 	args = get_args()
 
 	with open(args.config_file) as cf:
-		config = yaml.load(cf)
+		config = yaml.load(cf, Loader=yaml.FullLoader)
 		
 	log_file = config['logging']['file'] % args.contest_id
 	log_max_bytes = config['logging'].get('max_bytes', 10*1024*1024)
